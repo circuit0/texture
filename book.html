@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Three.js - More variables</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: -applesystem, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+html,
+body {
+height: 100vh;
+width: 100vw;
+}
+#threejs-container {
+position: block;
+width: 90vw;
+height: 90vw;
+}
+</style>
+<script src="https://circuit0.github.io/texture/three.min.js"></script>
+<script src="https://circuit0.github.io/texture/dat.gui.min.js"></script>
+</head>
+<body>
+<div id="threejs-container"></div>
+<script type="module">
+// Cylinder geometry in Three.js
+// GUI
+const gui = new dat.GUI()
+// sizes
+let width = window.innerWidth
+let height = window.innerHeight
+// scene
+const scene = new THREE.Scene()
+scene.background = new THREE.Color('pink')
+// camera
+const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
+camera.position.set(-10, 20, 50)
+camera.lookAt(0, 0,8)
+const camFolder = gui.addFolder('Camera')
+camFolder.add(camera.position, 'x',-50,60,1)
+camFolder.add(camera.position, 'y',0,60,1)
+camFolder.add(camera.position, 'z',10,100,10)
+camFolder.open()
+
+// lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
+
+for(let i=0; i<2; i++){
+const light = new THREE.DirectionalLight()
+light.position.set(-10, 10, 0)
+light.castShadow = true
+light.shadow.mapSize.width = 512
+light.shadow.mapSize.height = 512
+light.shadow.camera.near = 0.5
+light.shadow.camera.far = 100
+scene.add(light)}
+// light controls
+/*const lightColor = {
+color: light.color.getHex()}*/
+// plane
+const planeGeometry =new THREE.PlaneGeometry(50,50)
+const plane = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial({ color: 0xdacfb5 }))
+plane.rotateX(-Math.PI / 2)
+plane.position.y = -7
+plane.receiveShadow = true
+scene.add(plane)
+
+// cube
+const geometry = new THREE.BoxGeometry(11,17,0.004)
+const material = new THREE.MeshStandardMaterial({color: 0xffffff})
+for(let i=0; i<592; i++){
+const cube = new THREE.Mesh(geometry, material);
+cube.castShadow = true
+cube.receiveShadow = true
+cube.position.y = -6+i*0.0042
+cube.rotation.x = Math.PI/180*95
+scene.add(cube)}
+
+//Cover
+const loader = new THREE.TextureLoader()
+const texture = loader.load('https://raw.githubusercontent.com/circuit0/texture/main/image_2024-07-18_12-34-58.png')
+texture.wrapS = THREE.RepeatWrapping
+texture.wrapT = THREE.RepeatWrapping
+texture.magFilter = THREE.NearestFilter
+
+const back = loader.load('https://raw.githubusercontent.com/circuit0/texture/main/image_2024-07-18_12-38-49~2.png')
+back.wrapS = THREE.RepeatWrapping
+back.wrapT = THREE.RepeatWrapping
+back.magFilter = THREE.NearestFilter
+
+
+const maincover = new THREE.MeshPhongMaterial({
+map: texture,
+side: THREE.DoubleSide
+})
+const backcover = new THREE.MeshPhongMaterial({
+map: back,
+side: THREE.DoubleSide
+})
+const coverGeometry = new THREE.BoxGeometry(11,17,0.0016)
+const board = new THREE.Mesh(coverGeometry, maincover)
+board.position.set(0, -3.5, 0)
+board.rotation.x = Math.PI/180*95
+board.rotation.z = Math.PI
+scene.add(board)
+const end = new THREE.Mesh(coverGeometry, backcover)
+end.position.set(0, -6.016, 0)
+end.rotation.x = Math.PI/180*95
+end.rotation.z = Math.PI
+scene.add(end)
+
+const side=new THREE.Mesh( new THREE.BoxGeometry(0.0016,2.5,17),new THREE.MeshStandardMaterial({color: 0x97675d}))
+side.position.set(-5.505, -4.7, 0)
+side.rotation.x = Math.PI/180*5
+//board.rotation.z = Math.PI
+scene.add(side)
+// responsiveness
+window.addEventListener('resize', () => {
+width = window.innerWidth
+height = window.innerHeight
+camera.aspect = width / height
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.render(scene, camera)
+})
+// renderer
+const renderer = new THREE.WebGL1Renderer()
+renderer.setSize(width, height)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+// animation
+requestAnimationFrame(animate)
+function animate() {
+requestAnimationFrame(animate)
+board.rotation.y += 0.0
+renderer.render(scene, camera)
+}
+// rendecylinder the scene
+const container = document.querySelector('#threejs-container')
+container.append(renderer.domElement)
+renderer.render(scene, camera)
+animate()
+</script>
+</body>
+</html>
