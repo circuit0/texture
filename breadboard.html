@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base href="https://threejs.org" target="_blank">
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Three.js - More variables</title>
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: -applesystem, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+html,
+body {
+height: 100vh;
+width: 100vw;
+}
+#threejs-container {
+position: block;
+width: 90vw;
+height: 90vw;
+}
+</style>
+<script src="c:/users/lenovo/desktop/please!/code/three.min.js"></script>
+<script src="c:/users/lenovo/desktop/please!/code/dat.gui.min.js"></script>
+</head>
+<body>
+<div id="threejs-container"></div>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+<script type="module">
+import { OrbitControls } from "/examples/jsm/controls/OrbitControls.js"
+import { RoundedBoxGeometry } from '/examples/jsm/geometries/RoundedBoxGeometry.js';
+
+// Cylinder geometry in Three.js
+// GUI
+const gui = new dat.GUI()
+// sizes
+let width = window.innerWidth
+let height = window.innerHeight
+// scene
+const scene = new THREE.Scene()
+scene.background = new THREE.Color('pink')
+
+
+// renderer
+const renderer = new THREE.WebGL1Renderer()
+renderer.setSize(width, height)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+// camera
+const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
+camera.position.set(-10, 20, 50)
+camera.lookAt(0, 0,8)
+const camFolder = gui.addFolder('Camera')
+camFolder.add(camera.position, 'x',-50,60,1).onChange(()=>camera.lookAt(0, 0,8));
+camFolder.add(camera.position, 'y',0,60,1).onChange(()=>camera.lookAt(0, 0,8));
+camFolder.add(camera.position, 'z',10,100,10).onChange(()=>camera.lookAt(0, 0,8));
+camFolder.open()
+
+
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.autoRotate = true
+/*const ocFolder = gui.addFolder('Orbit Controls')
+ocFolder.add(controls, 'enabled')
+ocFolder.add(controls, 'enableZoom')
+ocFolder.add(controls, 'enableRotate')
+ocFolder.add(controls, 'enablePan')
+ocFolder.add(controls, 'autoRotate')
+ocFolder.add(controls, 'autoRotateSpeed', 1, 100, 1)
+ocFolder.open()*/
+// axes
+const axesHelper = new THREE.AxesHelper(20)
+scene.add(axesHelper)
+
+// lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
+
+for(let i=0; i<2; i++){
+const light = new THREE.DirectionalLight()
+light.position.set(-10, 10, 10)
+light.castShadow = true
+light.shadow.mapSize.width = 512
+light.shadow.mapSize.height = 512
+light.shadow.camera.near = 0.5
+light.shadow.camera.far = 100
+scene.add(light)}
+// light controls
+/*const lightColor = {
+color: light.color.getHex()}*/
+// plane
+const planeGeometry =new THREE.PlaneGeometry(50,50)
+const plane = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial({ color: 0xdacfb5 }))
+plane.rotateX(-Math.PI / 2)
+plane.position.y = -7
+plane.receiveShadow = true
+scene.add(plane)
+
+var canvas= document.createElement("canvas");
+canvas.width = "1000";
+canvas.height= "336";var ctx=canvas.getContext("2d");
+
+ctx.scale(2,2);
+
+var mid=ctx.createLinearGradient(0,80,0,88);
+mid.addColorStop(0,'#111');
+mid.addColorStop(0.2,'#fff');
+mid.addColorStop(0.8,'#fff');
+mid.addColorStop(1,'#111');
+
+ctx.fillStyle="#000";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle=mid;
+ctx.fillRect(0,80,500,8);
+
+ctx.translate(0,84);
+
+var mirror=function(){
+for(let i=0; i<100; i++){
+ctx.fillStyle="#fff";
+ctx.fillRect(31  +i%50*7.5+ 7.5*Math.floor(i%50/5),10 + Math.floor(i/50)*7.5,3,3);}
+
+for(let i=0; i<315; i++){
+ctx.fillRect(16  +i%63*7.5,40.5 + Math.floor(i/63)*7.5,3,3);}}
+
+ctx.save();
+ctx.translate(0,-84);
+mirror();
+ctx.restore();
+
+ctx.save();
+ctx.translate(0,84);
+ctx.scale(1,-1);
+mirror();
+ctx.restore();
+
+// cube
+const board = new THREE.BoxGeometry(25,8.4,0.6,400,1000,300)
+
+const material = [new THREE.MeshStandardMaterial({color: 0xffffff}),
+	new THREE.MeshStandardMaterial({color: 0xffffff}),
+	new THREE.MeshStandardMaterial({color: 0xffffff}),
+	new THREE.MeshStandardMaterial({color: 0xffffff}),
+	new THREE.MeshStandardMaterial({displacementMap: new THREE.CanvasTexture(canvas),
+					displacementScale : -0.4}),
+	new THREE.MeshStandardMaterial({color: 0xffffff})]
+const cube = new THREE.Mesh(board, material);
+cube.castShadow = true
+cube.receiveShadow = true
+scene.add(cube)
+
+
+// responsiveness
+window.addEventListener('resize', () => {
+width = window.innerWidth
+height = window.innerHeight
+camera.aspect = width / height
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.render(scene, camera)
+})
+// animation
+requestAnimationFrame(animate)
+function animate() {
+requestAnimationFrame(animate)
+//end.rotation.y += 0
+renderer.render(scene, camera)
+}
+// rendecylinder the scene
+const container = document.querySelector('#threejs-container')
+container.append(renderer.domElement)
+renderer.render(scene, camera)
+animate()
+</script>
+</body>
+</html>
